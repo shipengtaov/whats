@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import sys
 from argparse import ArgumentParser
 import re
+import random
 
 from . import __version__
 
@@ -32,6 +33,15 @@ import requests
 from readability import Document
 from lxml import html
 
+USER_AGENTS = (
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:11.0) Gecko/20100101 Firefox/11.0',
+    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:22.0) Gecko/20100 101 Firefox/22.0',
+    'Mozilla/5.0 (Windows NT 6.1; rv:11.0) Gecko/20100101 Firefox/11.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.5 (KHTML, like Gecko)'
+        'Chrome/19.0.1084.46 Safari/536.5',
+    'Mozilla/5.0 (Windows; Windows NT 6.1) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.46'
+        'Safari/536.5',
+)
 SEARCH_URLS = dict(
     google='https://www.google.com/search?q={0}',
 )
@@ -47,13 +57,25 @@ def _get_first_link(response):
 
 def tellme(word):
     search_url = SEARCH_URLS['google'].format(url_quote(word.encode('utf-8')))
-    search_response = requests.get(search_url, timeout=15)
-    assert search_response.status_code == 200
+    search_response = requests.get(
+                        search_url,
+                        headers={'User-Agent': random.choice(USER_AGENTS)},
+                        timeout=15)
+    if not search_response.ok:
+        raise SystemExit('response error from url: {}, status_code: {}'.format(
+                search_url,
+                search_response.status_code))
 
     first_link = _get_first_link(search_response)
     first_link = urljoin(search_url, first_link)
-    answer_response = requests.get(first_link, timeout=15)
-    assert answer_response.status_code == 200
+    answer_response = requests.get(
+                        first_link,
+                        headers={'User-Agent': random.choice(USER_AGENTS)},
+                        timeout=15)
+    if not answer_response.ok:
+        raise SystemExit('response error from url: {}, status_code: {}'.format(
+                first_link,
+                answer_response.status_code))
 
     doc = Document(answer_response.text)
     answer = doc.summary()

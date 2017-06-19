@@ -28,13 +28,7 @@ def read(*names):
 
 long_description = """
 %(README)s
-
-News
-====
-
-%(CHANGES)s
-
-""" % read('README', 'CHANGES')
+""" % read('README')
 
 setup(
     name='whats',
