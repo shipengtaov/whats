@@ -3,11 +3,30 @@
 
 from __future__ import unicode_literals
 
+import sys
 from argparse import ArgumentParser
 import re
-from urllib import quote as url_quote
-from urlparse import urljoin
 
+from . import __version__
+
+if sys.version_info.major < 3:
+    from urllib import quote as url_quote
+    from urlparse import urljoin
+    def force_text(string):
+        if not isinstance(string, (str, unicode)):
+            return unicode(string)
+        if not isinstance(string, unicode):
+            return string.decode('utf-8')
+        return string
+else:
+    from urllib.parse import quote as url_quote
+    from urllib.parse import urljoin
+    def force_text(string):
+        if not isinstance(string, (str, bytes)):
+            return str(string)
+        if not isinstance(string, str):
+            return string.decode('utf-8')
+        return string
 
 import requests
 from readability import Document
@@ -49,9 +68,15 @@ def tellme(word):
 def main():
     parser = ArgumentParser()
     parser.add_argument('word', nargs='?', help='what do you want to know?')
+    parser.add_argument('-v', '--version', action='store_true', help='show current version')
     args = parser.parse_args()
+
+    if args.version:
+        print("whats {}".format(__version__))
+        return
+
     if args.word:
-        print(tellme(args.word.decode('utf-8')))
+        print(tellme(force_text(args.word)))
     else:
         parser.print_help()
 
