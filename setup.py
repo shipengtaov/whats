@@ -47,7 +47,7 @@ setup(
         ]
     },
     install_requires=[
-        'requests',
+        'requests[socks]',
         'lxml',
         'readability-lxml',
     ] + extra_dependencies(),
